@@ -15,8 +15,6 @@ Parser *create_parser(Lexer *lexer);
 void parser_advance(Parser *parser);
 bool parser_expect(Parser *parser, TokenType type);
 void free_parser(Parser *parser);
-
-// Parsing functions
 Node *parse_program(Parser *parser);
 Node *parse_statement(Parser *parser);
 Node *parse_variable_declaration(Parser *parser);

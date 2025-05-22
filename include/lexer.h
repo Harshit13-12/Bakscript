@@ -22,4 +22,4 @@ char *lexer_collect_number(Lexer *lexer);
 char *lexer_collect_identifier(Lexer *lexer);
 void free_lexer(Lexer *lexer);
 
-#endif // LEXER_H
+#endif 

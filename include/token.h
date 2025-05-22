@@ -18,7 +18,7 @@ typedef enum
     TOKEN_OTHERWISE, // else
     TOKEN_REPEAT,    // for
     TOKEN_ASK,       // input
-    // Others
+               // Others
     TOKEN_IDENTIFIER,
     TOKEN_NUMBER_LITERAL,
     TOKEN_STRING_LITERAL,

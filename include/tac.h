@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include "ast.h"
 
-// TAC Operation Types
 typedef enum
 {
     TAC_ASSIGN,     // x = y
@@ -35,39 +34,29 @@ typedef enum
     TAC_NEQ         // Not equal
 } TACOpType;
 
-// TAC Instruction Structure
 typedef struct TAC
 {
     TACOpType op;
-    char *result; // Result variable
-    char *arg1;   // First argument
-    char *arg2;   // Second argument
+    char *result; 
+    char *arg1;   
+    char *arg2;   
     struct TAC *next;
-    int line; // Source line number for debugging
+    int line; 
 } TAC;
 
-// TAC Generation Functions
 TAC *tac_create(TACOpType op, char *result, char *arg1, char *arg2, int line);
 void tac_free(TAC *tac);
 TAC *tac_join(TAC *tac1, TAC *tac2);
-
-// AST to TAC Conversion
 TAC *ast_to_tac(Node *node);
 TAC *generate_tac_for_expr(Node *node);
 TAC *generate_tac_for_stmt(Node *node);
 TAC *generate_tac_for_decl(Node *node);
-
-// TAC Utility Functions
 char *generate_temp_var(void);
 char *generate_label(void);
 void reset_temp_counter(void);
 void reset_label_counter(void);
-
-// TAC Print Functions
 void print_tac(TAC *tac);
 void print_tac_list(TAC *tac);
-
-// Test Functions
 void test_tac_generation(void);
 
-#endif // TAC_H
+#endif

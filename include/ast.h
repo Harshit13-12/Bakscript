@@ -1,7 +1,6 @@
 #ifndef AST_H
 #define AST_H
 
-// Node types for our AST
 typedef enum
 {
     // Expressions
@@ -18,11 +17,7 @@ typedef enum
     NODE_BLOCK,
     NODE_PROGRAM
 } NodeType;
-
-// Forward declaration of Node structure
 typedef struct Node Node;
-
-// Binary operator types
 typedef enum
 {
     OP_ADD,
@@ -33,15 +28,11 @@ typedef enum
     OP_GREATER,
     OP_ASSIGN
 } BinaryOpType;
-
-// Common node information
 typedef struct
 {
     int line;
     int column;
 } NodeInfo;
-
-// Structure for binary operations (e.g., +, -, *, /, <, >)
 typedef struct
 {
     BinaryOpType op;
@@ -49,29 +40,21 @@ typedef struct
     Node *right;
     NodeInfo info;
 } BinaryOpNode;
-
-// Structure for number literals
 typedef struct
 {
     int value;
     NodeInfo info;
 } NumberNode;
-
-// Structure for string literals
 typedef struct
 {
     char *value;
     NodeInfo info;
 } StringNode;
-
-// Structure for identifiers (variable names)
 typedef struct
 {
     char *name;
     NodeInfo info;
 } IdentifierNode;
-
-// Structure for function calls (show, ask)
 typedef struct
 {
     char *name;
@@ -79,8 +62,6 @@ typedef struct
     int arg_count;
     NodeInfo info;
 } FunctionCallNode;
-
-// Structure for variable declarations
 typedef struct
 {
     char *type;
@@ -88,8 +69,6 @@ typedef struct
     Node *initializer;
     NodeInfo info;
 } VariableDeclarationNode;
-
-// Structure for if statements
 typedef struct
 {
     Node *condition;
@@ -97,8 +76,6 @@ typedef struct
     Node *else_body;
     NodeInfo info;
 } IfStatementNode;
-
-// Structure for for loops
 typedef struct
 {
     Node *initializer;
@@ -107,24 +84,18 @@ typedef struct
     Node *body;
     NodeInfo info;
 } ForLoopNode;
-
-// Structure for blocks of statements
 typedef struct
 {
     Node **statements;
     int count;
     NodeInfo info;
 } BlockNode;
-
-// Structure for the entire program
 typedef struct
 {
     Node **statements;
     int count;
     NodeInfo info;
 } ProgramNode;
-
-// Main Node structure
 struct Node
 {
     NodeType type;
@@ -154,8 +125,6 @@ Node *create_if_node(Node *condition, Node *if_body, Node *else_body, int line, 
 Node *create_for_node(Node *initializer, Node *condition, Node *increment, Node *body, int line, int column);
 Node *create_block_node(Node **statements, int count, int line, int column);
 Node *create_program_node(Node **statements, int count);
-
-// Function to free AST nodes
 void free_node(Node *node);
 
-#endif // AST_H
+#endif
