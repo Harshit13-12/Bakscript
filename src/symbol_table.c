@@ -1,0 +1,178 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "../include/symbol_table.h"
+
+// Simple hash function for strings
+static unsigned int hash(const char *str, int size)
+{
+    unsigned int hash = 0;
+    while (*str)
+    {
+        hash = (hash * 31 + *str) % size;
+        str++;
+    }
+    return hash;
+}
+
+SymbolTable *create_symbol_table(int size)
+{
+    SymbolTable *table = (SymbolTable *)malloc(sizeof(SymbolTable));
+    table->size = size;
+    table->scope_level = 0;
+    table->symbols = (Symbol **)calloc(size, sizeof(Symbol *));
+    return table;
+}
+
+bool symbol_table_insert(SymbolTable *table, const char *name, SymbolType sym_type, DataType data_type)
+{
+    unsigned int index = hash(name, table->size);
+
+    // Check if symbol already exists in current scope
+    Symbol *current = table->symbols[index];
+    while (current != NULL)
+    {
+        if (strcmp(current->name, name) == 0 && current->scope_level == table->scope_level)
+        {
+            return false; // Symbol already exists in current scope
+        }
+        current = current->next;
+    }
+
+    // Create new symbol
+    Symbol *symbol = (Symbol *)malloc(sizeof(Symbol));
+    symbol->name = strdup(name);
+    symbol->symbol_type = sym_type;
+    symbol->data_type = data_type;
+    symbol->is_initialized = false;
+    symbol->scope_level = table->scope_level;
+
+    // Insert at beginning of chain
+    symbol->next = table->symbols[index];
+    table->symbols[index] = symbol;
+
+    return true;
+}
+
+Symbol *symbol_table_lookup(SymbolTable *table, const char *name)
+{
+    unsigned int index = hash(name, table->size);
+    Symbol *current = table->symbols[index];
+
+    // Search through chain, return most recent scope's symbol
+    Symbol *found = NULL;
+    while (current != NULL)
+    {
+        if (strcmp(current->name, name) == 0 &&
+            (found == NULL || current->scope_level > found->scope_level))
+        {
+            found = current;
+        }
+        current = current->next;
+    }
+
+    return found;
+}
+
+void symbol_table_enter_scope(SymbolTable *table)
+{
+    table->scope_level++;
+}
+
+void symbol_table_exit_scope(SymbolTable *table)
+{
+    // Remove all symbols from current scope
+    for (int i = 0; i < table->size; i++)
+    {
+        Symbol *current = table->symbols[i];
+        Symbol *prev = NULL;
+
+        while (current != NULL)
+        {
+            if (current->scope_level == table->scope_level)
+            {
+                Symbol *to_delete = current;
+
+                if (prev == NULL)
+                {
+                    table->symbols[i] = current->next;
+                }
+                else
+                {
+                    prev->next = current->next;
+                }
+
+                current = current->next;
+                free(to_delete->name);
+                free(to_delete);
+            }
+            else
+            {
+                prev = current;
+                current = current->next;
+            }
+        }
+    }
+
+    table->scope_level--;
+}
+
+void symbol_table_set_initialized(SymbolTable *table, const char *name)
+{
+    Symbol *symbol = symbol_table_lookup(table, name);
+    if (symbol)
+    {
+        symbol->is_initialized = true;
+    }
+}
+
+void free_symbol_table(SymbolTable *table)
+{
+    if (!table)
+        return;
+
+    // Free all symbols
+    for (int i = 0; i < table->size; i++)
+    {
+        Symbol *current = table->symbols[i];
+        while (current != NULL)
+        {
+            Symbol *next = current->next;
+            free(current->name);
+            free(current);
+            current = next;
+        }
+    }
+
+    // Free the table itself
+    free(table->symbols);
+    free(table);
+}
+
+// Add this function to print symbol table contents
+void print_symbol_table(SymbolTable *table)
+{
+    printf("\nSymbol Table Contents:\n");
+    printf("Current Scope Level: %d\n", table->scope_level);
+    printf("----------------------------------------------------------------------------\n");
+    printf("%-20s %-10s %-10s %-10s %s\n",
+           "Name", "Type", "DataType", "Scope", "Initialized");
+    printf("----------------------------------------------------------------------------\n");
+
+    for (int i = 0; i < table->size; i++)
+    {
+        Symbol *current = table->symbols[i];
+        while (current != NULL)
+        {
+            const char *sym_type = current->symbol_type == SYMBOL_VARIABLE ? "Variable" : "Function";
+            const char *data_type = current->data_type == TYPE_NUM ? "num" : current->data_type == TYPE_STR ? "str"
+                                                                                                            : "void";
+            printf("%-20s %-10s %-10s %-10d %s\n",
+                   current->name, sym_type, data_type,
+                   current->scope_level,
+                   current->is_initialized ? "Yes" : "No");
+            current = current->next;
+        }
+    }
+    printf("---------------------------------------------------------------------------\n");
+}
