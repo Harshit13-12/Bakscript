@@ -35,8 +35,6 @@ void show_num(long long value)
     int_to_string(value, buf);
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD written;
-
-    WriteConsoleA(hConsole, "show_num received: ", 19, &written, NULL);
     WriteConsoleA(hConsole, buf, lstrlenA(buf), &written, NULL);
     WriteConsoleA(hConsole, "\n", 1, &written, NULL);
 }

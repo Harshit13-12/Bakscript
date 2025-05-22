@@ -1,12 +1,12 @@
-str name = "John";  // scope level 0
-num x = 10;
+str name = "John";  
+num x = 70;
 num y = 20;
-when (x > y) {
-    str age = "25"; // scope level 1
+when (70 > 20) {
+    str age = "25";
     show(name);
 }
 otherwise{
-    num x  = 10;
+    num x = 20;
     show(x);
 }
 show(name);

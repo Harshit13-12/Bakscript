@@ -1,2 +1,2 @@
 gcc -o bakscript src/*.c -I include
-bakscript.exe .\tests\main\full.bak
+bakscript.exe .\tests\main\if_else.bak

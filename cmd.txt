@@ -10,3 +10,8 @@ For linking the asm with runtime.c : ( Run in x64 Native Tools Command For VS 20
 
 Run the code :
     > x86_64.exe
+
+Error fixing for loop anf if-else :
+    > scope_check.bak
+    > loop.bak
+    > if_else.bak

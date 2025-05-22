@@ -138,32 +138,50 @@ void free_register(GenContext *context, Register *reg)
     }
 }
 
+// Helper function to check if a string is a label (starts with 'L' followed by digits)
+static int is_label(const char *str)
+{
+    if (!str || strlen(str) == 0)
+        return 0;
+    if (str[0] != 'L')
+        return 0;
+    for (int i = 1; i < strlen(str); i++)
+    {
+        if (!isdigit(str[i]))
+            return 0;
+    }
+    return 1;
+}
+
 char *generate_code(TAC *tac)
 {
     GenContext *context = create_gen_context();
     char declared[256][64] = {{0}};
     int declared_count = 0;
+    int string_count = 0;              // Counter for string literals
+    char string_vars[256][64] = {{0}}; // Track which variables contain strings
+    int string_var_count = 0;
 
     TAC *current = tac;
     while (current)
     {
-#define ADD_VAR_IF_NOT_DECLARED(var)                                                              \
-    do                                                                                            \
-    {                                                                                             \
-        if ((var) && strlen(var) > 0 && (var)[0] != '"' && !isdigit((var)[0]) && (var)[0] != '-') \
-        {                                                                                         \
-            int found = 0;                                                                        \
-            for (int i = 0; i < declared_count; i++)                                              \
-            {                                                                                     \
-                if (strcmp(declared[i], (var)) == 0)                                              \
-                {                                                                                 \
-                    found = 1;                                                                    \
-                    break;                                                                        \
-                }                                                                                 \
-            }                                                                                     \
-            if (!found)                                                                           \
-                strcpy(declared[declared_count++], (var));                                        \
-        }                                                                                         \
+#define ADD_VAR_IF_NOT_DECLARED(var)                                                                                \
+    do                                                                                                              \
+    {                                                                                                               \
+        if ((var) && strlen(var) > 0 && (var)[0] != '"' && !isdigit((var)[0]) && (var)[0] != '-' && !is_label(var)) \
+        {                                                                                                           \
+            int found = 0;                                                                                          \
+            for (int i = 0; i < declared_count; i++)                                                                \
+            {                                                                                                       \
+                if (strcmp(declared[i], (var)) == 0)                                                                \
+                {                                                                                                   \
+                    found = 1;                                                                                      \
+                    break;                                                                                          \
+                }                                                                                                   \
+            }                                                                                                       \
+            if (!found)                                                                                             \
+                strcpy(declared[declared_count++], (var));                                                          \
+        }                                                                                                           \
     } while (0)
 
         ADD_VAR_IF_NOT_DECLARED(current->result);
@@ -181,19 +199,22 @@ char *generate_code(TAC *tac)
     {
         if (strcmp(declared[i], "show") == 0)
             continue;
-        if (strncmp(declared[i], "t1", 2) == 0 && strlen(declared[i]) == 2)
-            continue;
         append_code(context, "    %s: dq 0\n", declared[i]);
     }
 
-    // Second pass: handle string constants (e.g., t1)
+    // Second pass: handle string constants
     current = tac;
     while (current)
     {
         if (current->op == TAC_ASSIGN && current->arg1 && current->arg1[0] == '"')
         {
-            // Only add once, assuming t1 is only string constant label
-            append_code(context, "    t1: db %s, 0\n", current->arg1);
+            // Extract the string content (remove quotes) and create a unique label
+            char string_content[256];
+            strncpy(string_content, current->arg1 + 1, strlen(current->arg1) - 2); // Remove quotes
+            string_content[strlen(current->arg1) - 2] = '\0';
+
+            append_code(context, "    string_%d: db \"%s\", 0\n", string_count, string_content);
+            string_count++;
         }
         current = current->next;
     }
@@ -208,6 +229,7 @@ char *generate_code(TAC *tac)
 
     // Generate code for each TAC instruction
     current = tac;
+    string_count = 0; // Reset counter for code generation
     while (current)
     {
         switch (current->op)
@@ -215,8 +237,12 @@ char *generate_code(TAC *tac)
         case TAC_ASSIGN:
             if (current->arg1[0] == '"') // string literal
             {
-                append_code(context, "    lea rax, [rel t1]\n");
+                // Track that this variable contains a string
+                strcpy(string_vars[string_var_count++], current->result);
+
+                append_code(context, "    lea rax, [rel string_%d]\n", string_count);
                 append_code(context, "    mov [%s], rax\n", current->result);
+                string_count++;
             }
             else if (isdigit(current->arg1[0]) || current->arg1[0] == '-') // immediate number
             {
@@ -225,6 +251,18 @@ char *generate_code(TAC *tac)
             }
             else // variable assignment
             {
+                // Check if source variable is a string variable
+                int source_is_string = 0;
+                for (int i = 0; i < string_var_count; i++)
+                {
+                    if (strcmp(string_vars[i], current->arg1) == 0)
+                    {
+                        source_is_string = 1;
+                        strcpy(string_vars[string_var_count++], current->result);
+                        break;
+                    }
+                }
+
                 append_code(context, "    mov rax, [%s]\n", current->arg1);
                 append_code(context, "    mov [%s], rax\n", current->result);
             }
@@ -233,25 +271,55 @@ char *generate_code(TAC *tac)
         case TAC_CALL:
             if (strcmp(current->arg1, "show") == 0)
             {
-                // Check if argument (arg2) is number or string literal
                 char *arg = current->arg2;
-                if (arg[0] == '"') // string literal
+
+                // Check if the argument is a string literal
+                if (arg[0] == '"')
                 {
-                    // Load address of the string into rcx, call show_str
-                    append_code(context, "    lea rcx, [rel %s]\n", arg);
+                    // Direct string literal - extract content and create inline string
+                    char string_content[256];
+                    strncpy(string_content, arg + 1, strlen(arg) - 2);
+                    string_content[strlen(arg) - 2] = '\0';
+
+                    // Create a temporary string label for this literal
+                    append_code(context, "    section .data\n");
+                    append_code(context, "    temp_string_%d: db \"%s\", 0\n", string_count, string_content);
+                    append_code(context, "    section .text\n");
+                    append_code(context, "    lea rcx, [rel temp_string_%d]\n", string_count);
                     append_code(context, "    call show_str\n");
+                    string_count++;
                 }
                 else if (isdigit(arg[0]) || (arg[0] == '-' && isdigit(arg[1])))
                 {
-                    // Immediate number, move into rcx and call show_num
+                    // Immediate number
                     append_code(context, "    mov rcx, %s\n", arg);
                     append_code(context, "    call show_num\n");
                 }
                 else
                 {
-                    // Otherwise treat as variable name: load variable value into rcx and call show_num
-                    append_code(context, "    mov rcx, [%s]\n", arg);
-                    append_code(context, "    call show_num\n");
+                    // Variable - check if it's in our string variables list
+                    int is_string_var = 0;
+                    for (int i = 0; i < string_var_count; i++)
+                    {
+                        if (strcmp(string_vars[i], arg) == 0)
+                        {
+                            is_string_var = 1;
+                            break;
+                        }
+                    }
+
+                    if (is_string_var)
+                    {
+                        // Variable contains string pointer
+                        append_code(context, "    mov rcx, [%s]\n", arg);
+                        append_code(context, "    call show_str\n");
+                    }
+                    else
+                    {
+                        // Variable contains number
+                        append_code(context, "    mov rcx, [%s]\n", arg);
+                        append_code(context, "    call show_num\n");
+                    }
                 }
             }
             break;
