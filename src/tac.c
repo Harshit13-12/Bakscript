@@ -3,7 +3,6 @@
 #include <string.h>
 #include "../include/tac.h"
 
-// Static counters for generating unique temporary variables and labels
 static int temp_counter = 0;
 static int label_counter = 0;
 
@@ -81,19 +80,15 @@ char *generate_label(void)
     return label;
 }
 
-// Reset the temporary variable counter
 void reset_temp_counter(void)
 {
     temp_counter = 0;
 }
-
-// Reset the label counter
 void reset_label_counter(void)
 {
     label_counter = 0;
 }
 
-// Print a single TAC instruction
 void print_tac(TAC *tac)
 {
     if (!tac)
@@ -169,8 +164,6 @@ void print_tac(TAC *tac)
         break;
     }
 }
-
-// Print a list of TAC instructions
 void print_tac_list(TAC *tac)
 {
     while (tac)
@@ -179,8 +172,6 @@ void print_tac_list(TAC *tac)
         tac = tac->next;
     }
 }
-
-// Generate TAC for expressions
 TAC *generate_tac_for_expr(Node *node)
 {
     if (!node)
@@ -300,10 +291,7 @@ TAC *generate_tac_for_stmt(Node *node)
     {
         if (node->var_decl.initializer)
         {
-            // Generate TAC for the initializer
             TAC *init = NULL;
-
-            // Special handling for function calls in initializers
             if (node->var_decl.initializer->type == NODE_FUNCTION_CALL)
             {
                 init = generate_tac_for_stmt(node->var_decl.initializer);
@@ -321,16 +309,13 @@ TAC *generate_tac_for_stmt(Node *node)
                 {
                     last_tac = last_tac->next;
                 }
-
-                // Create assignment TAC using the last result
                 TAC *assign = tac_create(TAC_ASSIGN, strdup(node->var_decl.name), last_tac->result, NULL, node->var_decl.info.line);
 
-                // Join initialization and assignment
                 TAC *result = tac_join(init, assign);
                 return result;
             }
         }
-        return NULL; // Return NULL instead of var declaration
+        return NULL;
     }
 
     case NODE_FOR_LOOP:
@@ -412,7 +397,6 @@ TAC *generate_tac_for_stmt(Node *node)
 
     case NODE_IF_STATEMENT:
     {
-        // Generate TAC for condition
         TAC *condition = generate_tac_for_expr(node->if_stmt.condition);
         if (!condition)
             return NULL;
@@ -420,8 +404,6 @@ TAC *generate_tac_for_stmt(Node *node)
         char *true_label = generate_label();
         char *false_label = generate_label();
         char *end_label = generate_label();
-
-        // Find the last TAC node in the condition list to get the final result
         TAC *last_tac = condition;
         while (last_tac->next)
         {
@@ -431,12 +413,9 @@ TAC *generate_tac_for_stmt(Node *node)
         TAC *if_tac = tac_create(TAC_IF, true_label, last_tac->result, NULL, node->if_stmt.info.line);
         TAC *goto_false = tac_create(TAC_GOTO, false_label, NULL, NULL, node->if_stmt.info.line);
         TAC *true_label_tac = tac_create(TAC_LABEL, true_label, NULL, NULL, node->if_stmt.info.line);
-
-        // Generate TAC for if body
         TAC *body = generate_tac_for_stmt(node->if_stmt.if_body);
         if (!body)
         {
-            // Clean up on error
             tac_free(condition);
             tac_free(if_tac);
             tac_free(goto_false);
@@ -449,15 +428,12 @@ TAC *generate_tac_for_stmt(Node *node)
 
         TAC *goto_end = tac_create(TAC_GOTO, end_label, NULL, NULL, node->if_stmt.info.line);
         TAC *false_label_tac = tac_create(TAC_LABEL, false_label, NULL, NULL, node->if_stmt.info.line);
-
-        // Generate TAC for else body if it exists
         TAC *else_body = NULL;
         if (node->if_stmt.else_body)
         {
             else_body = generate_tac_for_stmt(node->if_stmt.else_body);
             if (!else_body)
             {
-                // Clean up on error
                 tac_free(condition);
                 tac_free(if_tac);
                 tac_free(goto_false);
@@ -473,8 +449,6 @@ TAC *generate_tac_for_stmt(Node *node)
         }
 
         TAC *end_label_tac = tac_create(TAC_LABEL, end_label, NULL, NULL, node->if_stmt.info.line);
-
-        // Join all TAC instructions in the correct order
         TAC *result = condition;
         result = tac_join(result, if_tac);
         result = tac_join(result, goto_false);
@@ -516,8 +490,6 @@ TAC *generate_tac_for_stmt(Node *node)
     {
         TAC *args = NULL;
         TAC *last_arg = NULL;
-
-        // Process all arguments
         for (int i = 0; i < node->function_call.arg_count; i++)
         {
             TAC *arg = generate_tac_for_expr(node->function_call.arguments[i]);
@@ -539,8 +511,6 @@ TAC *generate_tac_for_stmt(Node *node)
                 }
             }
         }
-
-        // Find the last argument's result
         char *arg_result = NULL;
         if (last_arg)
         {
@@ -551,8 +521,6 @@ TAC *generate_tac_for_stmt(Node *node)
             }
             arg_result = temp->result;
         }
-
-        // For show function, we don't need to store the result
         if (strcmp(node->function_call.name, "show") == 0)
         {
             TAC *call = tac_create(TAC_CALL, NULL, strdup(node->function_call.name),
@@ -564,7 +532,6 @@ TAC *generate_tac_for_stmt(Node *node)
             }
             return tac_join(args, call);
         }
-        // For ask function, we need to store the result
         else if (strcmp(node->function_call.name, "ask") == 0)
         {
             char *temp = generate_temp_var();
@@ -578,7 +545,6 @@ TAC *generate_tac_for_stmt(Node *node)
             }
             return tac_join(args, call);
         }
-        // For other functions that return values
         else
         {
             char *temp = generate_temp_var();
@@ -605,10 +571,8 @@ TAC *ast_to_tac(Node *node)
     if (!node)
         return NULL;
 
-    // Reset counters for new TAC generation
     reset_temp_counter();
     reset_label_counter();
-    // Generate TAC for the program
     TAC *tac = generate_tac_for_stmt(node);
     return tac;
 }
@@ -616,22 +580,15 @@ TAC *ast_to_tac(Node *node)
 // Test function to demonstrate TAC generation and printing
 void test_tac_generation(void)
 {
-    // Create a simple AST for: x = 5 + 3
     Node *num1 = create_number_node(5, 1, 1);
     Node *num2 = create_number_node(3, 1, 5);
     Node *add = create_binary_op_node(OP_ADD, num1, num2, 1, 3);
     Node *var = create_identifier_node("x", 1, 7);
     Node *assign = create_binary_op_node(OP_ASSIGN, var, add, 1, 1);
-
-    // Generate TAC
     TAC *tac = ast_to_tac(assign);
-
-    // Print the generated TAC
     printf("\nGenerated Three-Address Code:\n");
     printf("----------------------------\n");
     print_tac_list(tac);
-
-    // Clean up
     free_node(assign);
     tac_free(tac);
 }

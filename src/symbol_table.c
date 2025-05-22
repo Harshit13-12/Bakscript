@@ -27,27 +27,21 @@ SymbolTable *create_symbol_table(int size)
 bool symbol_table_insert(SymbolTable *table, const char *name, SymbolType sym_type, DataType data_type)
 {
     unsigned int index = hash(name, table->size);
-
-    // Check if symbol already exists in current scope
     Symbol *current = table->symbols[index];
     while (current != NULL)
     {
         if (strcmp(current->name, name) == 0 && current->scope_level == table->scope_level)
         {
-            return false; // Symbol already exists in current scope
+            return false;
         }
         current = current->next;
     }
-
-    // Create new symbol
     Symbol *symbol = (Symbol *)malloc(sizeof(Symbol));
     symbol->name = strdup(name);
     symbol->symbol_type = sym_type;
     symbol->data_type = data_type;
     symbol->is_initialized = false;
     symbol->scope_level = table->scope_level;
-
-    // Insert at beginning of chain
     symbol->next = table->symbols[index];
     table->symbols[index] = symbol;
 
@@ -58,8 +52,6 @@ Symbol *symbol_table_lookup(SymbolTable *table, const char *name)
 {
     unsigned int index = hash(name, table->size);
     Symbol *current = table->symbols[index];
-
-    // Search through chain, return most recent scope's symbol
     Symbol *found = NULL;
     while (current != NULL)
     {
@@ -81,7 +73,6 @@ void symbol_table_enter_scope(SymbolTable *table)
 
 void symbol_table_exit_scope(SymbolTable *table)
 {
-    // Remove all symbols from current scope
     for (int i = 0; i < table->size; i++)
     {
         Symbol *current = table->symbols[i];
@@ -131,7 +122,6 @@ void free_symbol_table(SymbolTable *table)
     if (!table)
         return;
 
-    // Free all symbols
     for (int i = 0; i < table->size; i++)
     {
         Symbol *current = table->symbols[i];
@@ -143,13 +133,11 @@ void free_symbol_table(SymbolTable *table)
             current = next;
         }
     }
-
-    // Free the table itself
     free(table->symbols);
     free(table);
 }
 
-// Add this function to print symbol table contents
+// function to print symbol table contents
 void print_symbol_table(SymbolTable *table)
 {
     printf("\nSymbol Table Contents:\n");

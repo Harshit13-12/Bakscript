@@ -141,8 +141,6 @@ void free_register(GenContext *context, Register *reg)
 char *generate_code(TAC *tac)
 {
     GenContext *context = create_gen_context();
-
-    // First pass: collect all variable names (excluding string literals)
     char declared[256][64] = {{0}};
     int declared_count = 0;
 

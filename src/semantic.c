@@ -56,7 +56,6 @@ static DataType analyze_binary_op(SemanticContext *context, Node *node)
     DataType left_type = get_expression_type(context, node->binary_op.left);
     DataType right_type = get_expression_type(context, node->binary_op.right);
 
-    // Type checking rules for binary operations
     switch (node->binary_op.op)
     {
     case OP_ADD:
@@ -253,9 +252,6 @@ static void analyze_function_call(SemanticContext *context, Node *node)
     {
         Node *arg = node->function_call.arguments[i];
         DataType arg_type = get_expression_type(context, arg);
-
-        // The type checking here will automatically check for undefined variables
-        // through get_expression_type
     }
 }
 
@@ -287,7 +283,7 @@ bool analyze_program(SemanticContext *context, Node *node)
         break;
 
     case NODE_BINARY_OP:
-        get_expression_type(context, node); // This will perform type checking
+        get_expression_type(context, node);
         break;
 
     case NODE_FUNCTION_CALL:
