@@ -1,0 +1,6 @@
+num score = 85;
+when (score > 90) {
+    show("Excellent!");
+} otherwise {
+    show("Keep trying!");
+} 

@@ -1,0 +1,6 @@
+str name = "jatin";
+num sum = 10;
+repeat(num i=0;i < sum;i=i+1){
+    show(name);
+}
+show(sum);

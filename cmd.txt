@@ -1,0 +1,3 @@
+For compiling the phases of compiler :
+    > gcc -o bakscript src/*.c -I include
+    > ./bakscript.exe filename/path

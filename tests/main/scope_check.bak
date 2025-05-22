@@ -1,0 +1,12 @@
+str name = "John";  // scope level 0
+num x = 10;
+num y = 20;
+when (x > y) {
+    str age = "25"; // scope level 1
+    show(name);
+}
+otherwise{
+    num x  = 10;
+    show(x);
+}
+show(name);
