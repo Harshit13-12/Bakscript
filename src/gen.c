@@ -349,6 +349,54 @@ char *generate_code(TAC *tac)
             append_code(context, "    mov [%s], rax\n", current->result);
             break;
 
+        case TAC_GREATER: // Greater than
+            append_code(context, "    mov rax, [%s]\n", current->arg1);
+            append_code(context, "    cmp rax, [%s]\n", current->arg2);
+            append_code(context, "    setg al\n");       // Set AL to 1 if greater, 0 otherwise
+            append_code(context, "    movzx rax, al\n"); // Zero-extend AL to RAX
+            append_code(context, "    mov [%s], rax\n", current->result);
+            break;
+
+        case TAC_LESS: // Less than
+            append_code(context, "    mov rax, [%s]\n", current->arg1);
+            append_code(context, "    cmp rax, [%s]\n", current->arg2);
+            append_code(context, "    setl al\n");       // Set AL to 1 if less, 0 otherwise
+            append_code(context, "    movzx rax, al\n"); // Zero-extend AL to RAX
+            append_code(context, "    mov [%s], rax\n", current->result);
+            break;
+
+        case TAC_EQ: // Equal
+            append_code(context, "    mov rax, [%s]\n", current->arg1);
+            append_code(context, "    cmp rax, [%s]\n", current->arg2);
+            append_code(context, "    sete al\n");       // Set AL to 1 if equal, 0 otherwise
+            append_code(context, "    movzx rax, al\n"); // Zero-extend AL to RAX
+            append_code(context, "    mov [%s], rax\n", current->result);
+            break;
+
+        case TAC_NEQ: // Not equal
+            append_code(context, "    mov rax, [%s]\n", current->arg1);
+            append_code(context, "    cmp rax, [%s]\n", current->arg2);
+            append_code(context, "    setne al\n");      // Set AL to 1 if not equal, 0 otherwise
+            append_code(context, "    movzx rax, al\n"); // Zero-extend AL to RAX
+            append_code(context, "    mov [%s], rax\n", current->result);
+            break;
+
+        case TAC_GREATER_EQ: // Greater than or equal
+            append_code(context, "    mov rax, [%s]\n", current->arg1);
+            append_code(context, "    cmp rax, [%s]\n", current->arg2);
+            append_code(context, "    setge al\n");      // Set AL to 1 if greater or equal, 0 otherwise
+            append_code(context, "    movzx rax, al\n"); // Zero-extend AL to RAX
+            append_code(context, "    mov [%s], rax\n", current->result);
+            break;
+
+        case TAC_LESS_EQ: // Less than or equal
+            append_code(context, "    mov rax, [%s]\n", current->arg1);
+            append_code(context, "    cmp rax, [%s]\n", current->arg2);
+            append_code(context, "    setle al\n");      // Set AL to 1 if less or equal, 0 otherwise
+            append_code(context, "    movzx rax, al\n"); // Zero-extend AL to RAX
+            append_code(context, "    mov [%s], rax\n", current->result);
+            break;
+
         case TAC_IF:
             append_code(context, "    mov rax, [%s]\n", current->arg1);
             append_code(context, "    cmp rax, 0\n");

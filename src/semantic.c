@@ -46,6 +46,8 @@ const char *get_error_type_string(SemanticErrorType type)
         return "Use of uninitialized variable";
     case ERROR_INVALID_OPERATION:
         return "Invalid operation";
+    case ERROR_DIVISION_BY_ZERO:
+        return "Division by zero";
     default:
         return "Unknown error";
     }
@@ -69,6 +71,18 @@ static DataType analyze_binary_op(SemanticContext *context, Node *node)
                                node->binary_op.info.line,
                                node->binary_op.info.column);
             return TYPE_NUM; // Return NUM to continue analysis
+        }
+        if (node->binary_op.right->type == NODE_NUMBER)
+        {
+            // Assuming the number value is stored as a string, convert and check
+            double divisor = (double)node->binary_op.right->number.value;
+            if (divisor == 0.0)
+            {
+                add_semantic_error(context, ERROR_INVALID_OPERATION,
+                                   "Division by zero detected",
+                                   node->binary_op.info.line,
+                                   node->binary_op.info.column);
+            }
         }
         return TYPE_NUM;
 

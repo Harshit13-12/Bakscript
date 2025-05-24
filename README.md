@@ -2,11 +2,10 @@
 
 **BakScript** is a custom, minimalistic programming language designed and implemented from scratch in C. It compiles high-level language constructs into NASM x86-64 assembly, demonstrating core compiler design principles like lexing, parsing, intermediate representation, and code generation.
 
-
 ## ✨ Features
 
 - **Variables**: `num/str x = 5;`
-- **Data Types**: `num`, `string`
+- **Data Types**: `num`, `str`
 - **Arithmetic**: `+`, `-`, `*`, `/`
 - **Comparisons**: `<`, `>`
 - **Print Statement**: `show(x);` or `show ("Hello");`
@@ -14,8 +13,7 @@
   - `when` (if)
   - `otherwise` (else)
 - **Loops**:
-  - `repeat` (like a `for` loop)
-
+  - `repeat` (like a `for` loop) , with nested `when-otherwise`
 
 ## 🧠 Example: BakScript Program
 
@@ -39,8 +37,6 @@ repeat( num i = 0; i < 5; i = i + 1 ){
 }
 ```
 
-
-
 ## ⚙️ Architecture
 
 - **Lexer (lexer.c)**: Tokenizes input code
@@ -49,8 +45,6 @@ repeat( num i = 0; i < 5; i = i + 1 ){
 - **TAC Generator (tac.c)**: Converts AST into intermediate Three-Address Code
 - **Code Generator (gen.c)**: Converts TAC into NASM assembly
 - **Runtime (runtime.c)**: Provides functions like show_num, show_str, and process_exit
-
-
 
 ## 🛠️ Build Instructions (Use elf64 in Linux / win64 in Windows)
 
@@ -73,8 +67,6 @@ repeat( num i = 0; i < 5; i = i + 1 ){
     link x86_64.obj runtime.obj /SUBSYSTEM:CONSOLE /ENTRY:_start kernel32.lib
     x86_64.exe
    ```
-
-
 
 ## 📁 File Structure
 

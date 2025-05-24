@@ -7,7 +7,7 @@
 Lexer *create_lexer(char *source)
 {
     Lexer *lexer = (Lexer *)malloc(sizeof(Lexer));
-    lexer->source = strdup(source); 
+    lexer->source = strdup(source);
     lexer->position = 0;
     lexer->line = 1;
     lexer->column = 1;
@@ -163,6 +163,24 @@ Token *lexer_get_next_token(Lexer *lexer)
         case '+':
             return create_token(TOKEN_PLUS, "+", current_line, current_column);
         case '-':
+            if (isdigit(lexer->current_char))
+            {
+                // Collect the negative number
+                char *num = (char *)malloc(256 * sizeof(char));
+                int i = 0;
+                num[i++] = '-'; // Add the minus sign
+
+                while (isdigit(lexer->current_char))
+                {
+                    num[i++] = lexer->current_char;
+                    lexer_advance(lexer);
+                }
+
+                num[i] = '\0';
+                Token *token = create_token(TOKEN_NUMBER_LITERAL, num, current_line, current_column);
+                free(num);
+                return token;
+            }
             return create_token(TOKEN_MINUS, "-", current_line, current_column);
         case '*':
             return create_token(TOKEN_MULTIPLY, "*", current_line, current_column);
