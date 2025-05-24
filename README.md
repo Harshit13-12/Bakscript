@@ -14,6 +14,9 @@
   - `otherwise` (else)
 - **Loops**:
   - `repeat` (like a `for` loop) , with nested `when-otherwise`
+- **Error Reporting**:
+  - `Syntax` and `Semantic` Error Reporting
+  - `Divide by zero Error` reporting (only `when-otherwise` case for now)
 
 ## 🧠 Example: BakScript Program
 
@@ -45,28 +48,6 @@ repeat( num i = 0; i < 5; i = i + 1 ){
 - **TAC Generator (tac.c)**: Converts AST into intermediate Three-Address Code
 - **Code Generator (gen.c)**: Converts TAC into NASM assembly
 - **Runtime (runtime.c)**: Provides functions like show_num, show_str, and process_exit
-
-## 🛠️ Build Instructions (Use elf64 in Linux / win64 in Windows)
-
-1. Compile the Compiler :
-   ```bash
-   gcc -o bakscript src/*.c -I include
-   ```
-2. Run the Compiler :
-
-   ```bash
-   ./bakscript.exe filename/path
-   ```
-
-   > This generates x86_64.asm.
-
-3. Assemble and Link :
-   ```bash
-    nasm -f win64 -o x86_64.obj x86_64.asm
-    cl /c /Fo:runtime.obj .\link\runtime.c
-    link x86_64.obj runtime.obj /SUBSYSTEM:CONSOLE /ENTRY:_start kernel32.lib
-    x86_64.exe
-   ```
 
 ## 📁 File Structure
 
@@ -132,7 +113,11 @@ _start:
   call process_exit
 ```
 
-### **📌 Feature:**
+### 💬 For More Refer To:
+
+- > [🛠️ Build Instructions](doc/cmd.txt)
+- > [🦙 Instruction Set](doc/instruction_set.md)
+- > [❄️ x86-64 Assembly (NASM Syntax) ](doc/nasm.md)
 
 ## 🤝 Contributing
 
@@ -144,4 +129,4 @@ _start:
 
 ## 🧠 Inspiration
 
-> This project is built to understand compiler design fundamentals, from tokenizing source code to generating real machine-level assembly
+> This project is built to understand compiler design fundamentals, from tokenizing source code to generating real machine-level assembly .
