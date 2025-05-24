@@ -115,7 +115,7 @@ _start:
 
 ### 💬 For More Refer To:
 
-- > [🛠️ Build Instructions](doc/cmd.txt)
+- > [🛠️ Build Instructions](doc/cmd.md)
 - > [🦙 Instruction Set](doc/instruction_set.md)
 - > [❄️ x86-64 Assembly (NASM Syntax) ](doc/nasm.md)
 
