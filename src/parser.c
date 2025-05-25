@@ -217,7 +217,7 @@ Node *parse_expression(Parser *parser)
 // Parse a block of statements
 static Node *parse_block(Parser *parser)
 {
-    Token *start_token = parser->current_token; // Store the opening brace token
+    Token *start_token = parser->current_token;
     if (!parser_expect(parser, TOKEN_LBRACE))
         return NULL;
 
@@ -288,7 +288,7 @@ Node *parse_variable_declaration(Parser *parser)
 Node *parse_if_statement(Parser *parser)
 {
     Token *if_token = parser->current_token;
-    parser_advance(parser); // consume 'when'
+    parser_advance(parser); 
 
     if (!parser_expect(parser, TOKEN_LPAREN))
         return NULL;
@@ -346,25 +346,21 @@ Node *parse_assignment_expression(Parser *parser)
 Node *parse_for_loop(Parser *parser)
 {
     Token *for_token = parser->current_token;
-    parser_advance(parser); // consume 'repeat'
+    parser_advance(parser); 
 
     if (!parser_expect(parser, TOKEN_LPAREN))
         return NULL;
 
-    // Parse initializer (variable declaration)
     Node *initializer = parse_variable_declaration(parser);
     if (!initializer)
         return NULL;
 
-    // Parse condition
     Node *condition = parse_expression(parser);
     if (!condition)
         return NULL;
 
     if (!parser_expect(parser, TOKEN_SEMICOLON))
         return NULL;
-
-    // Parse increment (assignment expression)
     Node *increment = parse_assignment_expression(parser);
     if (!increment)
         return NULL;
@@ -372,7 +368,6 @@ Node *parse_for_loop(Parser *parser)
     if (!parser_expect(parser, TOKEN_RPAREN))
         return NULL;
 
-    // Parse body
     Node *body = parse_block(parser);
     if (!body)
         return NULL;
@@ -383,7 +378,7 @@ Node *parse_for_loop(Parser *parser)
 // Parse a function call (show or ask)
 Node *parse_function_call(Parser *parser, Token *func_token)
 {
-    parser_advance(parser); // consume function name
+    parser_advance(parser);
     if (!parser_expect(parser, TOKEN_LPAREN))
         return NULL;
 
@@ -446,7 +441,7 @@ Node *parse_statement(Parser *parser)
 
         if (parser->current_token->type == TOKEN_LPAREN)
         {
-            parser_advance(parser); // consume '('
+            parser_advance(parser); 
             Node **args = NULL;
             int arg_count = 0;
 
@@ -483,7 +478,7 @@ Node *parse_statement(Parser *parser)
         if (parser->current_token->type == TOKEN_EQUALS)
         {
             Token *op_token = parser->current_token;
-            parser_advance(parser); // consume '='
+            parser_advance(parser);
             Node *right = parse_expression(parser);
             if (!right)
             {

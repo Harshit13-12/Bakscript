@@ -128,7 +128,7 @@ Node *create_program_node(Node **statements, int count)
 {
     Node *node = create_node(NODE_PROGRAM);
     node->program.count = count;
-    node->program.info.line = 1; // Program starts at line 1
+    node->program.info.line = 1;
     node->program.info.column = 1;
 
     if (count > 0)

@@ -1,6 +1,6 @@
 #include <windows.h>
 
-// Minimal itoa to convert long long to string
+// convert long long to string
 void int_to_string(long long value, char *buffer)
 {
     char temp[21];
@@ -21,8 +21,6 @@ void int_to_string(long long value, char *buffer)
 
     if (negative)
         temp[i++] = '-';
-
-    // Reverse
     while (i-- > 0)
         buffer[j++] = temp[i];
 

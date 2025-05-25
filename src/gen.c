@@ -31,7 +31,7 @@ GenContext *create_gen_context(void)
     {
         context->registers[i].name = strdup(reg_names[i]);
         context->registers[i].variable = NULL;
-        context->registers[i].is_free = 1; // true
+        context->registers[i].is_free = 1; 
     }
 
     context->output_size = INITIAL_OUTPUT_SIZE;
@@ -116,8 +116,6 @@ Register *allocate_register(GenContext *context, const char *variable)
             return &context->registers[i];
         }
     }
-
-    // No free register, do round robin replacement
     Register *reg = &context->registers[context->current_reg];
     context->current_reg = (context->current_reg + 1) % context->reg_count;
     if (reg->variable)
@@ -158,8 +156,8 @@ char *generate_code(TAC *tac)
     GenContext *context = create_gen_context();
     char declared[256][64] = {{0}};
     int declared_count = 0;
-    int string_count = 0;              // Counter for string literals
-    char string_vars[256][64] = {{0}}; // Track which variables contain strings
+    int string_count = 0;              
+    char string_vars[256][64] = {{0}}; 
     int string_var_count = 0;
 
     TAC *current = tac;
@@ -193,7 +191,6 @@ char *generate_code(TAC *tac)
         current = current->next;
     }
 
-    // Declare variables in .data section
     append_code(context, "section .data\n");
     for (int i = 0; i < declared_count; i++)
     {
@@ -202,15 +199,13 @@ char *generate_code(TAC *tac)
         append_code(context, "    %s: dq 0\n", declared[i]);
     }
 
-    // Second pass: handle string constants
     current = tac;
     while (current)
     {
         if (current->op == TAC_ASSIGN && current->arg1 && current->arg1[0] == '"')
         {
-            // Extract the string content (remove quotes) and create a unique label
             char string_content[256];
-            strncpy(string_content, current->arg1 + 1, strlen(current->arg1) - 2); // Remove quotes
+            strncpy(string_content, current->arg1 + 1, strlen(current->arg1) - 2); 
             string_content[strlen(current->arg1) - 2] = '\0';
 
             append_code(context, "    string_%d: db \"%s\", 0\n", string_count, string_content);
@@ -219,7 +214,6 @@ char *generate_code(TAC *tac)
         current = current->next;
     }
 
-    // Text section and external declarations
     append_code(context, "\nsection .text\n");
     append_code(context, "global _start\n");
     append_code(context, "extern show_num\n");
@@ -227,31 +221,28 @@ char *generate_code(TAC *tac)
     append_code(context, "extern process_exit\n\n");
     append_code(context, "_start:\n");
 
-    // Generate code for each TAC instruction
     current = tac;
-    string_count = 0; // Reset counter for code generation
+    string_count = 0; 
     while (current)
     {
         switch (current->op)
         {
         case TAC_ASSIGN:
-            if (current->arg1[0] == '"') // string literal
-            {
-                // Track that this variable contains a string
+            if (current->arg1[0] == '"') 
+            {  
                 strcpy(string_vars[string_var_count++], current->result);
-
                 append_code(context, "    lea rax, [rel string_%d]\n", string_count);
                 append_code(context, "    mov [%s], rax\n", current->result);
                 string_count++;
             }
-            else if (isdigit(current->arg1[0]) || current->arg1[0] == '-') // immediate number
+            else if (isdigit(current->arg1[0]) || current->arg1[0] == '-') 
             {
                 append_code(context, "    mov rax, %s\n", current->arg1);
                 append_code(context, "    mov [%s], rax\n", current->result);
             }
-            else // variable assignment
+            else 
             {
-                // Check if source variable is a string variable
+                
                 int source_is_string = 0;
                 for (int i = 0; i < string_var_count; i++)
                 {
@@ -272,16 +263,11 @@ char *generate_code(TAC *tac)
             if (strcmp(current->arg1, "show") == 0)
             {
                 char *arg = current->arg2;
-
-                // Check if the argument is a string literal
                 if (arg[0] == '"')
                 {
-                    // Direct string literal - extract content and create inline string
                     char string_content[256];
                     strncpy(string_content, arg + 1, strlen(arg) - 2);
                     string_content[strlen(arg) - 2] = '\0';
-
-                    // Create a temporary string label for this literal
                     append_code(context, "    section .data\n");
                     append_code(context, "    temp_string_%d: db \"%s\", 0\n", string_count, string_content);
                     append_code(context, "    section .text\n");
@@ -291,13 +277,11 @@ char *generate_code(TAC *tac)
                 }
                 else if (isdigit(arg[0]) || (arg[0] == '-' && isdigit(arg[1])))
                 {
-                    // Immediate number
                     append_code(context, "    mov rcx, %s\n", arg);
                     append_code(context, "    call show_num\n");
                 }
                 else
                 {
-                    // Variable - check if it's in our string variables list
                     int is_string_var = 0;
                     for (int i = 0; i < string_var_count; i++)
                     {
@@ -310,13 +294,13 @@ char *generate_code(TAC *tac)
 
                     if (is_string_var)
                     {
-                        // Variable contains string pointer
+                        
                         append_code(context, "    mov rcx, [%s]\n", arg);
                         append_code(context, "    call show_str\n");
                     }
                     else
                     {
-                        // Variable contains number
+                        
                         append_code(context, "    mov rcx, [%s]\n", arg);
                         append_code(context, "    call show_num\n");
                     }
@@ -349,51 +333,51 @@ char *generate_code(TAC *tac)
             append_code(context, "    mov [%s], rax\n", current->result);
             break;
 
-        case TAC_GREATER: // Greater than
+        case TAC_GREATER: 
             append_code(context, "    mov rax, [%s]\n", current->arg1);
             append_code(context, "    cmp rax, [%s]\n", current->arg2);
-            append_code(context, "    setg al\n");       // Set AL to 1 if greater, 0 otherwise
-            append_code(context, "    movzx rax, al\n"); // Zero-extend AL to RAX
+            append_code(context, "    setg al\n");       
+            append_code(context, "    movzx rax, al\n"); 
             append_code(context, "    mov [%s], rax\n", current->result);
             break;
 
-        case TAC_LESS: // Less than
+        case TAC_LESS: 
             append_code(context, "    mov rax, [%s]\n", current->arg1);
             append_code(context, "    cmp rax, [%s]\n", current->arg2);
-            append_code(context, "    setl al\n");       // Set AL to 1 if less, 0 otherwise
-            append_code(context, "    movzx rax, al\n"); // Zero-extend AL to RAX
+            append_code(context, "    setl al\n");       
+            append_code(context, "    movzx rax, al\n"); 
             append_code(context, "    mov [%s], rax\n", current->result);
             break;
 
-        case TAC_EQ: // Equal
+        case TAC_EQ: 
             append_code(context, "    mov rax, [%s]\n", current->arg1);
             append_code(context, "    cmp rax, [%s]\n", current->arg2);
-            append_code(context, "    sete al\n");       // Set AL to 1 if equal, 0 otherwise
-            append_code(context, "    movzx rax, al\n"); // Zero-extend AL to RAX
+            append_code(context, "    sete al\n");       
+            append_code(context, "    movzx rax, al\n"); 
             append_code(context, "    mov [%s], rax\n", current->result);
             break;
 
-        case TAC_NEQ: // Not equal
+        case TAC_NEQ: 
             append_code(context, "    mov rax, [%s]\n", current->arg1);
             append_code(context, "    cmp rax, [%s]\n", current->arg2);
-            append_code(context, "    setne al\n");      // Set AL to 1 if not equal, 0 otherwise
-            append_code(context, "    movzx rax, al\n"); // Zero-extend AL to RAX
+            append_code(context, "    setne al\n");      
+            append_code(context, "    movzx rax, al\n"); 
             append_code(context, "    mov [%s], rax\n", current->result);
             break;
 
-        case TAC_GREATER_EQ: // Greater than or equal
+        case TAC_GREATER_EQ: 
             append_code(context, "    mov rax, [%s]\n", current->arg1);
             append_code(context, "    cmp rax, [%s]\n", current->arg2);
-            append_code(context, "    setge al\n");      // Set AL to 1 if greater or equal, 0 otherwise
-            append_code(context, "    movzx rax, al\n"); // Zero-extend AL to RAX
+            append_code(context, "    setge al\n");      
+            append_code(context, "    movzx rax, al\n"); 
             append_code(context, "    mov [%s], rax\n", current->result);
             break;
 
-        case TAC_LESS_EQ: // Less than or equal
+        case TAC_LESS_EQ: 
             append_code(context, "    mov rax, [%s]\n", current->arg1);
             append_code(context, "    cmp rax, [%s]\n", current->arg2);
-            append_code(context, "    setle al\n");      // Set AL to 1 if less or equal, 0 otherwise
-            append_code(context, "    movzx rax, al\n"); // Zero-extend AL to RAX
+            append_code(context, "    setle al\n");      
+            append_code(context, "    movzx rax, al\n"); 
             append_code(context, "    mov [%s], rax\n", current->result);
             break;
 
@@ -412,7 +396,6 @@ char *generate_code(TAC *tac)
             break;
 
         default:
-            // Unknown or unhandled TAC op
             break;
         }
         current = current->next;

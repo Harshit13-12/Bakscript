@@ -104,7 +104,6 @@ Token *lexer_get_next_token(Lexer *lexer)
 {
     while (lexer->current_char != '\0')
     {
-        // Skip whitespace
         if (isspace(lexer->current_char))
         {
             lexer_skip_whitespace(lexer);
@@ -127,7 +126,6 @@ Token *lexer_get_next_token(Lexer *lexer)
             char *identifier = lexer_collect_identifier(lexer);
             TokenType type = TOKEN_IDENTIFIER;
 
-            // Check for keywords
             if (strcmp(identifier, "num") == 0)
                 type = TOKEN_NUM;
             else if (strcmp(identifier, "str") == 0)
@@ -165,10 +163,9 @@ Token *lexer_get_next_token(Lexer *lexer)
         case '-':
             if (isdigit(lexer->current_char))
             {
-                // Collect the negative number
                 char *num = (char *)malloc(256 * sizeof(char));
                 int i = 0;
-                num[i++] = '-'; // Add the minus sign
+                num[i++] = '-';
 
                 while (isdigit(lexer->current_char))
                 {

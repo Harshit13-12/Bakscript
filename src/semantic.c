@@ -8,7 +8,7 @@
 SemanticContext *create_semantic_context(void)
 {
     SemanticContext *context = (SemanticContext *)malloc(sizeof(SemanticContext));
-    context->symbol_table = create_symbol_table(256); // reasonable size for hash table
+    context->symbol_table = create_symbol_table(256); 
     context->errors = (SemanticError *)malloc(INITIAL_ERROR_CAPACITY * sizeof(SemanticError));
     context->error_count = 0;
     context->error_capacity = INITIAL_ERROR_CAPACITY;
@@ -70,11 +70,10 @@ static DataType analyze_binary_op(SemanticContext *context, Node *node)
                                "Arithmetic operations require numeric operands",
                                node->binary_op.info.line,
                                node->binary_op.info.column);
-            return TYPE_NUM; // Return NUM to continue analysis
+            return TYPE_NUM; 
         }
         if (node->binary_op.right->type == NODE_NUMBER)
         {
-            // Assuming the number value is stored as a string, convert and check
             double divisor = (double)node->binary_op.right->number.value;
             if (divisor == 0.0)
             {
@@ -95,7 +94,7 @@ static DataType analyze_binary_op(SemanticContext *context, Node *node)
                                node->binary_op.info.line,
                                node->binary_op.info.column);
         }
-        return TYPE_NUM; // Boolean result
+        return TYPE_NUM; 
 
     case OP_ASSIGN:
         if (left_type != right_type)
@@ -187,7 +186,7 @@ static void analyze_variable_declaration(SemanticContext *context, Node *node)
     if (node->var_decl.initializer)
     {
         DataType init_type = get_expression_type(context, node->var_decl.initializer);
-        if (init_type != var_type && init_type != TYPE_VOID) // Allow void for function calls
+        if (init_type != var_type && init_type != TYPE_VOID) 
         {
             add_semantic_error(context, ERROR_TYPE_MISMATCH,
                                "Initializer type does not match variable type",
@@ -196,7 +195,6 @@ static void analyze_variable_declaration(SemanticContext *context, Node *node)
         }
         else if (node->var_decl.initializer->type == NODE_FUNCTION_CALL)
         {
-            // If initializing with a function call, mark as initialized
             symbol_table_set_initialized(context->symbol_table, node->var_decl.name);
         }
         else if (init_type == var_type)
@@ -261,7 +259,6 @@ static void analyze_for_loop(SemanticContext *context, Node *node)
 
 static void analyze_function_call(SemanticContext *context, Node *node)
 {
-    // Check each argument
     for (int i = 0; i < node->function_call.arg_count; i++)
     {
         Node *arg = node->function_call.arguments[i];

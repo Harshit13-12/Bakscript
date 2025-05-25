@@ -8,10 +8,8 @@ int is_constant_value(const char *value)
 {
     if (!value)
         return 0;
-    // Check if it's a number
     if (value[0] >= '0' && value[0] <= '9')
         return 1;
-    // Check if it's a string literal
     if (value[0] == '"')
         return 1;
     return 0;
@@ -48,7 +46,6 @@ TAC *constant_folding(TAC *tac)
     TAC *current = tac;
     while (current)
     {
-        // Check for arithmetic operations with constant operands
         if ((current->op == TAC_ADD || current->op == TAC_SUB ||
              current->op == TAC_MUL || current->op == TAC_DIV) &&
             is_constant_value(current->arg1) && is_constant_value(current->arg2))
@@ -80,15 +77,12 @@ TAC *constant_folding(TAC *tac)
             default:
                 break;
             }
-
-            // Replace the operation with a constant assignment
             char result_str[32];
             sprintf(result_str, "%d", result);
             current->op = TAC_ASSIGN;
             current->arg1 = strdup(result_str);
             current->arg2 = NULL;
         }
-        // Handle unary operations
         else if ((current->op == TAC_NEG) && is_constant_value(current->arg1))
         {
             int val = atoi(current->arg1);
@@ -98,7 +92,6 @@ TAC *constant_folding(TAC *tac)
             current->arg1 = strdup(result_str);
             current->arg2 = NULL;
         }
-        // Handle comparisons with constants
         else if ((current->op == TAC_LESS || current->op == TAC_GREATER) &&
                  is_constant_value(current->arg1) && is_constant_value(current->arg2))
         {
@@ -135,21 +128,16 @@ TAC *dead_code_elimination(TAC *tac)
     if (!tac)
         return NULL;
 
-    // First pass: mark all variables that are used
-    int *used = (int *)calloc(1000, sizeof(int));    // Assuming max 1000 variables
-    int *defined = (int *)calloc(1000, sizeof(int)); // Track variable definitions
+    int *used = (int *)calloc(1000, sizeof(int));
+    int *defined = (int *)calloc(1000, sizeof(int)); 
     TAC *current = tac;
-
-    // First pass: find all variable definitions and their dependencies
     while (current)
     {
-        // Mark result as defined
         if (current->result && is_temp_var(current->result))
         {
             defined[atoi(current->result + 1)] = 1;
         }
 
-        // Mark arguments as used
         if (current->arg1 && is_temp_var(current->arg1))
         {
             used[atoi(current->arg1 + 1)] = 1;
@@ -158,9 +146,6 @@ TAC *dead_code_elimination(TAC *tac)
         {
             used[atoi(current->arg2 + 1)] = 1;
         }
-
-        // Special case: if this is an assignment to a non-temp variable,
-        // we need to keep the instruction
         if (current->op == TAC_ASSIGN && current->result && !is_temp_var(current->result))
         {
             if (current->arg1 && is_temp_var(current->arg1))
@@ -172,7 +157,6 @@ TAC *dead_code_elimination(TAC *tac)
         current = current->next;
     }
 
-    // Second pass: remove unused assignments
     TAC *prev = NULL;
     current = tac;
     while (current)
@@ -185,13 +169,11 @@ TAC *dead_code_elimination(TAC *tac)
         {
 
             int var_num = atoi(current->result + 1);
-            // Only remove if the variable is not used and not needed for a non-temp assignment
             should_remove = !used[var_num];
         }
 
         if (should_remove)
         {
-            // Remove this instruction
             if (prev)
             {
                 prev->next = current->next;
@@ -237,7 +219,6 @@ TAC *common_subexpression_elimination(TAC *tac)
             {
                 if (is_same_expression(current, search))
                 {
-                    // Replace the second occurrence with an assignment
                     search->op = TAC_ASSIGN;
                     search->arg1 = strdup(current->result);
                     search->arg2 = NULL;
@@ -259,7 +240,6 @@ TAC *strength_reduction(TAC *tac)
     TAC *current = tac;
     while (current)
     {
-        // Replace multiplication by 2 with addition
         if (current->op == TAC_MUL &&
             ((strcmp(current->arg1, "2") == 0) ||
              (strcmp(current->arg2, "2") == 0)))
@@ -282,8 +262,6 @@ TAC *optimize_tac(TAC *tac)
 {
     if (!tac)
         return NULL;
-
-    // Apply optimization passes in sequence
     tac = constant_folding(tac);
     tac = common_subexpression_elimination(tac);
     tac = strength_reduction(tac);

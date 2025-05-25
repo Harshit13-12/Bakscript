@@ -303,7 +303,6 @@ TAC *generate_tac_for_stmt(Node *node)
 
             if (init)
             {
-                // Find the last TAC node to get the final result
                 TAC *last_tac = init;
                 while (last_tac->next)
                 {

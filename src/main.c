@@ -140,8 +140,6 @@ char *read_file(const char *filename)
             fclose(file);
         exit(1);
     }
-
-    // Read file
     size_t read_size = fread(buffer, 1, size, file);
     buffer[read_size] = '\0';
 
@@ -227,7 +225,6 @@ int main(int argc, char *argv[])
                     const char *prefix = "default rel\n\n";
                     size_t prefix_len = strlen(prefix);
                     size_t assembly_len = strlen(assembly);
-                    // Allocate new buffer for combined string
                     char *new_assembly = malloc(prefix_len + assembly_len + 1);
                     if (!new_assembly)
                     {
