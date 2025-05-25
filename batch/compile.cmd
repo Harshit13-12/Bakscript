@@ -1,2 +1,2 @@
 gcc -o bakscript ../src/*.c -I ../include
-bakscript.exe ../tests\main\if_else.bak
+bakscript.exe ../tests\main\str_loop.bak
