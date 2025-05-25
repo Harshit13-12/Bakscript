@@ -24,7 +24,6 @@ void add_semantic_error(SemanticContext *context, SemanticErrorType type,
         context->errors = (SemanticError *)realloc(context->errors,
                                                    context->error_capacity * sizeof(SemanticError));
     }
-
     SemanticError *error = &context->errors[context->error_count++];
     error->type = type;
     error->message = strdup(message);
@@ -214,7 +213,6 @@ static void analyze_if_statement(SemanticContext *context, Node *node)
                            node->if_stmt.info.line,
                            node->if_stmt.info.column);
     }
-
     symbol_table_enter_scope(context->symbol_table);
     analyze_program(context, node->if_stmt.if_body);
     symbol_table_exit_scope(context->symbol_table);
@@ -270,7 +268,6 @@ bool analyze_program(SemanticContext *context, Node *node)
 {
     if (!node)
         return true;
-
     switch (node->type)
     {
     case NODE_PROGRAM:

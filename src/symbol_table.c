@@ -142,10 +142,10 @@ void print_symbol_table(SymbolTable *table)
 {
     printf("\nSymbol Table Contents:\n");
     printf("Current Scope Level: %d\n", table->scope_level);
-    printf("----------------------------------------------------------------------------\n");
+    printf("--------------------------------------------------------\n");
     printf("%-20s %-10s %-10s %-10s %s\n",
            "Name", "Type", "DataType", "Scope", "Initialized");
-    printf("----------------------------------------------------------------------------\n");
+    printf("--------------------------------------------------------\n");
 
     for (int i = 0; i < table->size; i++)
     {
@@ -153,8 +153,7 @@ void print_symbol_table(SymbolTable *table)
         while (current != NULL)
         {
             const char *sym_type = current->symbol_type == SYMBOL_VARIABLE ? "Variable" : "Function";
-            const char *data_type = current->data_type == TYPE_NUM ? "num" : current->data_type == TYPE_STR ? "str"
-                                                                                                            : "void";
+            const char *data_type = current->data_type == TYPE_NUM ? "num" : current->data_type == TYPE_STR ? "str": "void";
             printf("%-20s %-10s %-10s %-10d %s\n",
                    current->name, sym_type, data_type,
                    current->scope_level,
@@ -162,5 +161,5 @@ void print_symbol_table(SymbolTable *table)
             current = current->next;
         }
     }
-    printf("---------------------------------------------------------------------------\n");
+    printf("--------------------------------------------------------\n");
 }
